@@ -55,7 +55,7 @@ def register(c):
 
         if not URL in [f.URL for f in c.feeds]:
             c.feeds.append(Feed(c, c.feed_dir +\
-                    URL.replace("/", " "), URL,
+                    URL.replace("/", "_"), URL,
                     kwargs["tags"],
                     kwargs["rate"],
                     kwargs["keep"],

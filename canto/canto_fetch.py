@@ -104,7 +104,7 @@ def main(enc):
     # Remove any crap out of the directory. This is mostly for
     # cleaning up when the user has removed a feed from the configuration.
 
-    valid_names = [f.URL.replace("/"," ") for f in cfg.feeds]
+    valid_names = [f.URL.replace("/","_") for f in cfg.feeds]
     for file in os.listdir(cfg.feed_dir):
         if not file in valid_names:
             log_func("Deleted extraneous file: %s" % file)
@@ -179,7 +179,7 @@ def run(cfg, verbose=False, force=False):
 
     # The main canto-fetch loop.
     for fd in cfg.feeds:
-        fpath = cfg.feed_dir + fd.URL.replace("/", " ")
+        fpath = cfg.feed_dir + fd.URL.replace("/", "_")
         spath = cfg.script_dir
         threads.append(FetchThread(cfg, fd, fpath, spath, force, log_func))
         threads[-1].start()
