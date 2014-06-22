@@ -383,7 +383,7 @@ class Main():
                     # Make sure we don't pin the CPU, so if there's no input and
                     # no waiting updates, sleep for awhile.
                     if not self.ph.pid:
-                        time.sleep(0.01)
+                        time.sleep(1/60.)
                         continue
 
                     r = self.ph.recv(True, 0.01)
@@ -459,6 +459,8 @@ class Main():
                     elif r == EXIT:
                         self.gui = None
                         break
+
+                time.sleep(0.01)
 
         except Exception:
             self.estring = traceback.format_exc()
