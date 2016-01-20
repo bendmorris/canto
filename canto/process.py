@@ -111,12 +111,54 @@ import time
 import sys
 import os
 
-class Queue():
+
+class EpollPoller(object):
+    def __init__(self):
+        self._epoll = select.epoll()
+
+    def register(self, pipe):
+        self._epoll.register(pipe, select.EPOLLIN)
+
+    def poll(self, timeout):
+        return self._epoll.poll(timeout)
+
+class PollPoller(object):
+    def __init__(self):
+        self._poll = select.poll()
+
+    def register(self, pipe):
+        self._poll.register(pipe, select.POLLIN)
+
+    def poll(self, timeout):
+        return self._poll.poll(timeout)
+
+class SelectPoller(object):
+    def __init__(self):
+        self._pipes = []
+
+    def register(self, pipe):
+        self._pipes.append(pipe)
+
+    def poll(self, timeout):
+        return select.select(self._pipes, [], [], timeout)[0]
+
+
+if hasattr(select, 'epoll'):
+    Poller = EpollPoller
+elif hasattr(select, 'poll'):
+    Poller = PollPoller
+elif hasattr(select, 'select'):
+    Poller = SelectPoller
+else:
+    raise Exception("No valid poller implementation found")
+
+
+class Queue(object):
     def __init__(self):
         self.recvpipe, self.sendpipe = os.pipe()
 
-        self.poll = select.poll()
-        self.poll.register(self.recvpipe, select.POLLIN)
+        self.poll = Poller()
+        self.poll.register(self.recvpipe)
 
         self.objlist = []
         self.objlock = Lock()
@@ -196,7 +238,7 @@ class Queue():
         os.close(self.recvpipe)
         os.close(self.sendpipe)
 
-class ProcessHandler():
+class ProcessHandler(object):
     def __init__(self, cfg):
         self.persist = True
         self.cfg = cfg

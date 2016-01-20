@@ -173,7 +173,7 @@ class Main():
                 break
 
         # Collapse the feed array, if we had to remove some unfetchables.
-        self.cfg.feeds = filter(lambda x: x != None, self.cfg.feeds)
+        self.cfg.feeds = [f for f in self.cfg.feeds if f is not None]
 
         self.new = []
         self.old = []
