@@ -52,7 +52,13 @@ def upgrade_help():
     print "http://codezen.org/canto/config/#upgrading-from-06x"
 
 class Main():
+    instance = None
+
     def __init__(self, stdscr = None):
+        if Main.instance:
+            raise Exception("attempting to create a duplicate Main instance")
+        Main.instance = self
+
         signal.signal(signal.SIGUSR2, self.debug_out)
 
         # Let locale figure itself out

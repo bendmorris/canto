@@ -15,6 +15,8 @@ import locale
 import sys
 import re
 import os
+import subprocess
+import main
 
 # The Cycle class has proved to be useful. It's used
 # to encapsulate every cycle in canto, global filters,
@@ -64,37 +66,26 @@ def silentfork(path, href, text, fetch):
     enc = locale.getpreferredencoding()
     href = href.encode(enc, "ignore")
 
-    pid = os.fork()
-    if not pid :
-        # A lot of programs don't appreciate
-        # having their fds closed, so instead
-        # we dup them to /dev/null.
+    # A lot of programs don't appreciate
+    # having their fds closed, so instead
+    # we dup them to /dev/null.
 
-        fd = os.open("/dev/null", os.O_RDWR)
-        os.dup2(fd, sys.stderr.fileno())
+    curses.endwin()
 
-        if not text:
-            os.setpgid(os.getpid(), os.getpid())
-            os.dup2(fd, sys.stdout.fileno())
+    if fetch:
+        response = urllib2.urlopen(href)
+        data = response.read()
+        fd, name = tempfile.mkstemp()
+        os.write(fd, data)
+        os.close(fd)
+        path = path.replace("%u", name)
+    else:
+        path = path.replace("%u", href)
 
-        if fetch:
-            response = urllib2.urlopen(href)
-            data = response.read()
-            fd, name = tempfile.mkstemp()
-            os.write(fd, data)
-            os.close(fd)
-            path = path.replace("%u", name)
-        else:
-            path = path.replace("%u", href)
+    subprocess.call(["/bin/sh", "-c", path])
 
-        os.execv("/bin/sh", ["/bin/sh", "-c", path])
-        sys.exit(0)
+    main.Main.instance.refresh(restart=True)
 
-    if text:
-        signal.signal(signal.SIGALRM, signal.SIG_IGN)
-        signal.signal(signal.SIGWINCH, signal.SIG_IGN)
-
-    return pid
 
 def goto(link, cfg):
     title,href,handler = link
